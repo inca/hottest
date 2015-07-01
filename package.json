@@ -1,6 +1,6 @@
 {
   "name": "hottest",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The hottest web testing toolkit based on PhantomJS",
   "main": "src/index.js",
   "dependencies": {
@@ -18,7 +18,9 @@
     "express": "*",
     "lodash.assign": "*"
   },
-  "pre-commit": [ "test" ],
+  "pre-commit": [
+    "test"
+  ],
   "scripts": {
     "pretest": "eslint .",
     "test": "mocha"
