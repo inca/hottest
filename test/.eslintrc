@@ -1,0 +1,14 @@
+{
+  "globals": {
+    "describe": false,
+    "it": false,
+    "step": false,
+    "before": false,
+    "after": false,
+    "beforeEach": false,
+    "afterEach": false,
+
+    "document": false,
+    "window": false
+  }
+}

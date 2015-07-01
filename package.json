@@ -1,0 +1,43 @@
+{
+  "name": "hottest",
+  "version": "0.0.0",
+  "description": "The hottest web testing toolkit based on PhantomJS",
+  "main": "src/index.js",
+  "dependencies": {
+    "node-phantom-simple": "*",
+    "chai": "*",
+    "async": "*",
+    "debug": "*",
+    "sprintf": "*"
+  },
+  "devDependencies": {
+    "pre-commit": "*",
+    "eslint": "*",
+    "mocha": "*",
+    "phantomjs": "1.x.x",
+    "express": "*",
+    "lodash.assign": "*"
+  },
+  "pre-commit": [ "test" ],
+  "scripts": {
+    "pretest": "eslint .",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:inca/hottest.git"
+  },
+  "keywords": [
+    "web",
+    "scraping",
+    "test",
+    "testing",
+    "phantomjs"
+  ],
+  "author": "Boris Okunskiy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/inca/hottest/issues"
+  },
+  "homepage": "https://github.com/inca/hottest"
+}
