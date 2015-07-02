@@ -1,6 +1,6 @@
 {
-  "name": "hottest",
-  "version": "0.0.1",
+  "name": "websurance",
+  "version": "0.0.0",
   "description": "Headless web testing tool for fun & profit",
   "main": "src/index.js",
   "dependencies": {
@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:inca/hottest.git"
+    "url": "git@github.com:inca/websurance.git"
   },
   "keywords": [
     "web",
@@ -39,7 +39,7 @@
   "author": "Boris Okunskiy",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/inca/hottest/issues"
+    "url": "https://github.com/inca/websurance/issues"
   },
-  "homepage": "https://github.com/inca/hottest"
+  "homepage": "https://github.com/inca/websurance"
 }

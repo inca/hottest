@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('hottest')
+var debug = require('debug')('websurance')
   , error = require('./util/error');
 
 var Test = module.exports = exports = function (scope) {

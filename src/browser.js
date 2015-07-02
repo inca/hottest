@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('hottest')
+var debug = require('debug')('websurance')
   , async = require('async')
   , assign = require('lodash.assign')
   , phantom = require('node-phantom-simple')

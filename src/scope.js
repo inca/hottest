@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('hottest')
+var debug = require('debug')('websurance')
   , Test = require('./test')
   , error = require('./util/error');
 
