@@ -164,3 +164,32 @@ Test.prototype.text = function (value) {
   });
 };
 
+Test.prototype.checked = function () {
+  var self = this
+    , scope = self.scope
+    , browser = self.browser
+    , selector = scope.getSelector();
+  return scope.enqueue(function (done) {
+    debug('test.checked(%s)', selector);
+    browser._page.evaluate(function (selector) {
+      var element = document.querySelector(selector);
+      if (!element)
+        return false;
+      return {
+        checked: element.checked
+      };
+    }, function (err, result) {
+      if (err) return done(err);
+      if (!result)
+        return done(error('test.checked: %s not found', selector));
+      if (result.checked == self._expect)
+        return done();
+      if (self._expect)
+        return done(error('test.checked: %s should be checked',
+          selector));
+      return done(error('test.checked: %s should not be checked',
+        selector));
+    }, selector);
+  });
+};
+
