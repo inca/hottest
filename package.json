@@ -1,7 +1,7 @@
 {
   "name": "hottest",
   "version": "0.0.1",
-  "description": "The hottest web testing toolkit based on PhantomJS",
+  "description": "Headless web testing tool for fun & profit",
   "main": "src/index.js",
   "dependencies": {
     "node-phantom-simple": "*",

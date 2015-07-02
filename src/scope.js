@@ -1,19 +1,58 @@
 'use strict';
 
 var debug = require('debug')('hottest')
+  , Test = require('./test')
   , error = require('./util/error');
 
-var Action = module.exports = exports = function (browser) {
+var Scope = module.exports = exports = function (browser, selector) {
   this.browser = browser;
+  this._prefix = selector ? selector + ' ' : '';
+  this._selector = '';
 };
 
-Action.prototype.eval = function (clientFn /*, [params...[, cb]] */) {
-  var browser = this.browser;
-  return browser.enqueue(function (done) {
+// Add test namespace
+
+Object.defineProperty(Scope.prototype, 'test', {
+  get: function () {
+    return new Test(this);
+  }
+});
+
+Scope.prototype.scope = function (selector) {
+  var scope = this;
+  debug('scope: %s', selector);
+  return new Scope(scope.browser, scope._prefix + selector);
+};
+
+Scope.prototype.select = function (selector) {
+  var scope = this;
+  scope._selector = selector;
+  return scope;
+};
+
+Scope.prototype.getSelector = function (sel) {
+  var scope = this;
+  var current = sel || scope._selector;
+  if (!current)
+    throw error('Nothing is selected.');
+  return scope._prefix + current;
+};
+
+Scope.prototype.enqueue = function (fn) {
+  var scope = this;
+  scope.browser.enqueue(fn);
+  return scope;
+};
+
+Scope.prototype.eval = function (clientFn /*, [params...[, cb]] */) {
+  var scope = this
+    , browser = scope.browser;
+  var _arguments = arguments;
+  return scope.enqueue(function (done) {
     var args = []
       , cb = null;
-    for (var i = 1; i < arguments.length; i++) {
-      var arg = arguments[i];
+    for (var i = 1; i < _arguments.length; i++) {
+      var arg = _arguments[i];
       if (typeof arg == 'function') {
         cb = arg;
         break;
@@ -32,27 +71,28 @@ Action.prototype.eval = function (clientFn /*, [params...[, cb]] */) {
   });
 };
 
-Action.prototype.wait = function (param) {
-  var browser = this.browser;
+Scope.prototype.wait = function (param) {
+  var scope = this;
   if (typeof param == 'number')
-    return browser.delay(param);
+    return scope.delay(param);
   if (typeof param == 'string')
-    return browser.waitFor(param);
+    return scope.waitFor(param);
   if (typeof param == 'function')
-    return browser.waitFn(param);
+    return scope.waitFn(param);
   throw error('wait accepts milliseconds, selector or a function');
 };
 
-Action.prototype.delay = function (delay) {
-  var browser = this.browser;
-  return browser.enqueue(function (done) {
+Scope.prototype.delay = function (delay) {
+  var scope = this;
+  return scope.enqueue(function (done) {
     debug('delay %s ms', delay);
     setTimeout(done, delay);
   });
 };
 
-Action.prototype.waitFn = function (fn) {
-  var browser = this.browser
+Scope.prototype.waitFn = function (fn) {
+  var scope = this
+    , browser = scope.browser
     , start = Date.now();
   function check(done) {
     browser._page.evaluate(fn, function (err, result) {
@@ -65,16 +105,17 @@ Action.prototype.waitFn = function (fn) {
       }, browser.options.pollInterval);
     });
   }
-  return browser.enqueue(function (done) {
+  return scope.enqueue(function (done) {
     debug('waitFn(<fn>)');
     check(done);
   });
 };
 
-Action.prototype.waitFor = function (sel) {
-  var browser = this.browser
+Scope.prototype.waitFor = function (sel) {
+  var scope = this
+    , browser = scope.browser
     , start = Date.now()
-    , selector = browser.getSelector(sel);
+    , selector = scope.getSelector(sel);
   function check(done) {
     browser._page.evaluate(function (selector) {
       return document.querySelectorAll(selector).length;
@@ -88,16 +129,17 @@ Action.prototype.waitFor = function (sel) {
       }, browser.options.pollInterval);
     }, selector);
   }
-  return browser.enqueue(function (done) {
+  return scope.enqueue(function (done) {
     debug('waitFor(%s)', selector);
     check(done);
   });
 };
 
-Action.prototype.val = function (value) {
-  var browser = this.browser
-    , selector = browser.getSelector();
-  return browser.enqueue(function (done) {
+Scope.prototype.val = function (value) {
+  var scope = this
+    , browser = scope.browser
+    , selector = scope.getSelector();
+  return scope.enqueue(function (done) {
     debug('val(%s, %s)', selector, value);
     browser._page.evaluate(function (selector, value) {
       var element = document.querySelector(selector);
@@ -119,27 +161,25 @@ Action.prototype.val = function (value) {
   });
 };
 
-Action.prototype.click = function () {
-  var browser = this.browser
-    , selector = browser.getSelector();
-  return browser.enqueue(function (done) {
+Scope.prototype.click = function () {
+  var scope = this
+    , browser = scope.browser
+    , selector = scope.getSelector();
+  return scope.enqueue(function (done) {
     debug('click(%s)', selector);
     browser._page.evaluate(function (selector) {
       var element = document.querySelector(selector);
       if (!element)
         return false;
-      var box = element.getBoundingClientRect();
-      return {
-        left: Math.ceil(box.left),
-        top: Math.ceil(box.top)
-      };
-    }, function (err, coords) {
+      var ev = document.createEvent('MouseEvents');
+      ev.initEvent('click', true, true);
+      element.dispatchEvent(ev);
+      return true;
+    }, function (err, found) {
       if (err) return done(err);
-      if (!coords)
+      if (!found)
         return done(error('val: %s not found', selector));
-      browser._page.sendEvent('click', coords.left, coords.top);
       done();
     }, selector);
   });
 };
-

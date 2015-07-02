@@ -4,9 +4,7 @@ var debug = require('debug')('hottest')
   , async = require('async')
   , assign = require('lodash.assign')
   , phantom = require('node-phantom-simple')
-  , error = require('./util/error')
-  , Test = require('./test')
-  , Action = require('./action');
+  , Scope = require('./scope');
 
 var PARAMS_MAP = {
   loadImages: 'load-images',
@@ -24,7 +22,9 @@ var Browser = module.exports = exports = function (options) {
     baseUrl: '',
     timeout: 5000,
     pollInterval: 50,
-
+    width: 1920,
+    height: 1080,
+    // PhantomJS args
     loadImages: true,
     ignoreSslErrors: true,
     sslProtocols: 'any',
@@ -34,21 +34,13 @@ var Browser = module.exports = exports = function (options) {
   this._page = null;
   this._queue = [];
   this._queueAfterOpen = [];
-  this._scope = null;
-  this._selector = null;
 
-  // Inherit from Action
-  Action.call(this, this);
+  // Inherit from Scope
+  Scope.call(this, this);
 };
 
-// Make actions available directly on browser
-Browser.prototype = Object.create(Action.prototype);
-
-Object.defineProperty(Browser.prototype, 'test', {
-  get: function () {
-    return new Test(this);
-  }
-});
+// Inherit from Scope
+Browser.prototype = Object.create(Scope.prototype);
 
 Browser.prototype.enqueue = function (fn) {
   this._queue.push(fn);
@@ -56,104 +48,102 @@ Browser.prototype.enqueue = function (fn) {
 };
 
 Browser.prototype.run = function (done) {
-  var self = this;
+  var browser = this;
   async.series([
-    self._initPhantom.bind(self),
-    self._initPage.bind(self),
-    self._execQueue.bind(self)
+    browser._initPhantom.bind(browser),
+    browser._initPage.bind(browser),
+    browser._execQueue.bind(browser)
   ], done);
-  return self;
+  return browser;
 };
 
 Browser.prototype._initPhantom = function (done) {
-  var self = this;
-  if (self._phantom)
+  var browser = this;
+  if (browser._phantom)
     return done();
-  var params = Object.keys(self.options).reduce(function (params, key) {
+  var params = Object.keys(browser.options).reduce(function (params, key) {
     var paramKey = PARAMS_MAP[key];
     if (paramKey)
-      params[paramKey] = self.options[key];
+      params[paramKey] = browser.options[key];
     return params;
   }, {});
   phantom.create(function (err, ph) {
     if (err) return done(err);
-    self._phantom = ph;
+    browser._phantom = ph;
     return done();
   }, {
     parameters: params,
     phantomPath: require('phantomjs').path
   });
-  return self;
+  return browser;
 };
 
 Browser.prototype._initPage = function (done) {
-  var self = this;
-  if (self._page)
+  var browser = this;
+  if (browser._page)
     return done();
-  self._phantom.createPage(function (err, page) {
+  browser._phantom.createPage(function (err, page) {
     if (err) return done(err);
-    self._page = page;
+    browser._page = page;
     done();
   });
-  return self;
+  return browser;
 };
 
 Browser.prototype._execQueue = function (done) {
-  var self = this;
-  var queue = self._queue;
-  self._queue = [];
+  var browser = this;
+  var queue = browser._queue;
+  browser._queue = [];
   async.eachSeries(queue, function (action, cb) {
-    action.call(self, cb);
+    action.call(browser, cb);
   }, done);
-  return self;
+  return browser;
 };
 
 Browser.prototype.exit = function () {
-  var self = this;
-  self._phantom.exit();
-  self._page = null;
-  self._queue = null;
-  return self;
+  var browser = this;
+  browser._phantom.exit();
+  browser._page = null;
+  browser._queue = null;
+  return browser;
 };
 
 Browser.prototype.open = function (location) {
-  var self = this;
-  return self.enqueue(function (done) {
-    var url = self.options.baseUrl + location;
+  var browser = this;
+  return browser
+    .viewport(this.options.width, this.options.height)
+    .enqueue(function (done) {
+    var url = browser.options.baseUrl + location;
     debug('open %s', url);
-    self._page.open(url, function (err) {
+    browser._page.open(url, function (err) {
       if (err) return done(err);
-      async.eachSeries(self._queueAfterOpen, function (action, cb) {
-        action.call(self, cb);
+      async.eachSeries(browser._queueAfterOpen, function (action, cb) {
+        action.call(browser, cb);
       }, done);
     });
   });
 };
 
 Browser.prototype.afterOpen = function (fn) {
-  var self = this;
-  self._queueAfterOpen.push(fn);
-  return self;
+  var browser = this;
+  browser._queueAfterOpen.push(fn);
+  return browser;
 };
 
-Browser.prototype.scope = function (selector) {
-  var self = this;
-  self._scope = selector;
-  self._selector = null;
-  return self;
+Browser.prototype.viewport = function (width, height) {
+  var browser = this;
+  return browser.enqueue(function (done) {
+    browser._page.set('viewportSize', {
+      width: width,
+      height: height
+    }, done);
+  });
 };
 
-Browser.prototype.select = function (selector) {
-  var self = this;
-  self._selector = selector;
-  return self;
-};
-
-Browser.prototype.getSelector = function (sel) {
-  var self = this;
-  var prefix = self._scope ? self._scope + ' ' : '';
-  var current = sel || self._selector;
-  if (!current)
-    throw error('Nothing is selected.');
-  return prefix + current;
+Browser.prototype.screenshot = function (file) {
+  var browser = this;
+  return browser.enqueue(function (done) {
+    debug('screenshot: %s', file);
+    browser._page.render(file, done);
+  });
 };

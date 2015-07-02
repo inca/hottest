@@ -1,4 +1,4 @@
-# The hottest web testing tool for fun and profit
+# Headless web testing tool for fun & profit  
  
 Hi there! Thanks for coming!
 
