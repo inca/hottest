@@ -69,11 +69,12 @@ Test.prototype.count = function (count) {
       return document.querySelectorAll(selector).length;
     }, function (err, actual) {
       if (err) return done(err);
+      actual = +actual;
       if ((actual == count) == self._expect)
         return done();
       if (self._expect)
         return done(error('test.count: %s x %s is expected (%s found)',
-          selector, count, +actual));
+          selector, count, actual));
       return done(error('test.count: %s x %s is not expected', selector, count));
     }, selector);
   });
