@@ -1,6 +1,6 @@
 {
   "name": "websurance",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Headless web testing tool for fun & profit",
   "main": "src/index.js",
   "dependencies": {
