@@ -92,7 +92,7 @@ Test.prototype.visible = function () {
       if (!element)
         return false;
       var box = element.getBoundingClientRect();
-      return box.width && box.height;
+      return (box.width > 0) && (box.height > 0);
     }, function (err, visible) {
       if (err) return done(err);
       if (visible == self._expect)
