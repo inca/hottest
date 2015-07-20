@@ -67,13 +67,13 @@ Browser.prototype._initPhantom = function (done) {
       params[paramKey] = browser.options[key];
     return params;
   }, {});
-  phantom.create(function (err, ph) {
+  phantom.create({
+    parameters: params,
+    path: require('phantomjs').path
+  }, function (err, ph) {
     if (err) return done(err);
     browser._phantom = ph;
     return done();
-  }, {
-    parameters: params,
-    phantomPath: require('phantomjs').path
   });
   return browser;
 };

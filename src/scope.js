@@ -118,16 +118,17 @@ Scope.prototype.waitFor = function (sel) {
     , selector = scope.getSelector(sel);
   function check(done) {
     browser._page.evaluate(function (selector) {
-      return document.querySelectorAll(selector).length;
-    }, function (err, result) {
-      if (err) return done(err);
-      if (result) return done();
-      if (Date.now() > (start + browser.options.timeout))
-        return done(error('waitFor(%s) timed out', selector));
-      setTimeout(function () {
-        check(done);
-      }, browser.options.pollInterval);
-    }, selector);
+        return document.querySelectorAll(selector).length;
+      }, selector
+      , function (err, result) {
+        if (err) return done(err);
+        if (result) return done();
+        if (Date.now() > (start + browser.options.timeout))
+          return done(error('waitFor(%s) timed out', selector));
+        setTimeout(function () {
+          check(done);
+        }, browser.options.pollInterval);
+      });
   }
   return scope.enqueue(function (done) {
     debug('waitFor(%s)', selector);
@@ -142,22 +143,24 @@ Scope.prototype.val = function (value) {
   return scope.enqueue(function (done) {
     debug('val(%s, %s)', selector, value);
     browser._page.evaluate(function (selector, value) {
-      var element = document.querySelector(selector);
-      if (!element)
-        return false;
-      if (typeof element.value == 'undefined')
-        return false;
-      element.value = value;
-      var ev = document.createEvent('HTMLEvents');
-      ev.initEvent('change', false, true);
-      element.dispatchEvent(ev);
-      return true;
-    }, function (err, found) {
-      if (err) return done(err);
-      if (!found)
-        return done(error('val: %s not found / not an input', selector));
-      return done();
-    }, selector, value);
+        var element = document.querySelector(selector);
+        if (!element)
+          return false;
+        if (typeof element.value == 'undefined')
+          return false;
+        element.value = value;
+        var ev = document.createEvent('HTMLEvents');
+        ev.initEvent('change', false, true);
+        element.dispatchEvent(ev);
+        return true;
+      }, selector
+      , value
+      , function (err, found) {
+        if (err) return done(err);
+        if (!found)
+          return done(error('val: %s not found / not an input', selector));
+        return done();
+      });
   });
 };
 
@@ -168,19 +171,20 @@ Scope.prototype.click = function () {
   return scope.enqueue(function (done) {
     debug('click(%s)', selector);
     browser._page.evaluate(function (selector) {
-      var element = document.querySelector(selector);
-      if (!element)
-        return false;
-      var ev = document.createEvent('MouseEvents');
-      ev.initEvent('click', true, true);
-      element.dispatchEvent(ev);
-      return true;
-    }, function (err, found) {
-      if (err) return done(err);
-      if (!found)
-        return done(error('val: %s not found', selector));
-      done();
-    }, selector);
+        var element = document.querySelector(selector);
+        if (!element)
+          return false;
+        var ev = document.createEvent('MouseEvents');
+        ev.initEvent('click', true, true);
+        element.dispatchEvent(ev);
+        return true;
+      }, selector
+      , function (err, found) {
+        if (err) return done(err);
+        if (!found)
+          return done(error('val: %s not found', selector));
+        done();
+      });
   });
 };
 
