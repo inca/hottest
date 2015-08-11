@@ -8,15 +8,15 @@
     "chai": "*",
     "async": "*",
     "debug": "*",
-    "sprintf": "*"
+    "sprintf": "*",
+    "lodash.assign": "*"
   },
   "devDependencies": {
     "pre-commit": "*",
     "eslint": "*",
     "mocha": "*",
     "phantomjs": "1.x.x",
-    "express": "*",
-    "lodash.assign": "*"
+    "express": "*"
   },
   "pre-commit": [
     "test"
