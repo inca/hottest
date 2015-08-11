@@ -85,6 +85,11 @@ Browser.prototype._initPage = function (done) {
   browser._phantom.createPage(function (err, page) {
     if (err) return done(err);
     browser._page = page;
+    browser._page.onError = function(msg) {
+      /* eslint-disable no-console */
+      console.error('ERROR: %s', msg);
+      /* eslint-enable no-console */
+    };
     done();
   });
   return browser;
